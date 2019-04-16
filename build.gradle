@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'idea'
 }
 
 group 'dev.entze'
@@ -12,5 +13,30 @@ repositories {
 }
 
 dependencies {
+    compile fileTree(dir: 'lib', include: ['*.jar'])
     testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+jar {
+    manifest {
+        attributes 'Sge-Type': 'agent'
+        attributes 'Agent-Class': 'dev.entze.sge.agent.mctsagent.MctsAgent'
+        attributes 'Agent-Name': 'MctsAgent'
+    }
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
 }
