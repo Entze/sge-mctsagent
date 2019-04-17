@@ -1,23 +1,28 @@
 package dev.entze.sge.agent.mctsagent;
 
 import dev.entze.sge.game.Game;
+import dev.entze.sge.util.node.GameNode;
 import java.util.Objects;
 
-public class GameNode<A> {
+public class McGameNode<A> implements GameNode<A> {
 
-  private final Game<A, ?> game;
+  private Game<A, ?> game;
   private int wins;
   private int plays;
 
-  public GameNode(Game<A, ?> game) {
+  public McGameNode() {
+    this(null);
+  }
+
+  public McGameNode(Game<A, ?> game) {
     this(game, 0, 0);
   }
 
-  public GameNode(Game<A, ?> game, A action) {
+  public McGameNode(Game<A, ?> game, A action) {
     this(game.doAction(action));
   }
 
-  public GameNode(Game<A, ?> game, int wins, int plays) {
+  public McGameNode(Game<A, ?> game, int wins, int plays) {
     this.game = game;
     this.wins = wins;
     this.plays = plays;
@@ -26,6 +31,10 @@ public class GameNode<A> {
 
   public Game<A, ?> getGame() {
     return game;
+  }
+
+  public void setGame(Game<A, ?> game) {
+    this.game = game;
   }
 
   public int getWins() {
@@ -60,10 +69,10 @@ public class GameNode<A> {
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
-    GameNode<?> gameNode = (GameNode<?>) o;
-    return wins == gameNode.wins &&
-        plays == gameNode.plays &&
-        game.equals(gameNode.game);
+    McGameNode<?> mcGameNode = (McGameNode<?>) o;
+    return wins == mcGameNode.wins &&
+        plays == mcGameNode.plays &&
+        game.equals(mcGameNode.game);
   }
 
   @Override
