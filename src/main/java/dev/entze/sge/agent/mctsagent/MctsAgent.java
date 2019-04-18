@@ -2,6 +2,7 @@ package dev.entze.sge.agent.mctsagent;
 
 import dev.entze.sge.agent.AbstractGameAgent;
 import dev.entze.sge.agent.GameAgent;
+import dev.entze.sge.engine.Logger;
 import dev.entze.sge.game.Game;
 import dev.entze.sge.util.Util;
 import dev.entze.sge.util.tree.DoubleLinkedTree;
@@ -33,11 +34,15 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
   private Tree<McGameNode<A>> mcTree;
 
   public MctsAgent() {
-    this(Math.sqrt(2));
+    this(Math.sqrt(2), null);
   }
 
-  public MctsAgent(double exploitation_constant) {
-    super();
+  public MctsAgent(Logger log) {
+    this(Math.sqrt(2), log);
+  }
+
+  public MctsAgent(double exploitation_constant, Logger log) {
+    super(log);
     this.exploitation_constant = exploitation_constant;
     mcTree = new DoubleLinkedTree<>();
   }
