@@ -29,7 +29,7 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
   private Comparator<Tree<McGameNode<A>>> gameMcTreeMoveComparator;
 
 
-  private final double exploitation_constant;
+  private final double exploitationConstant;
 
   private Tree<McGameNode<A>> mcTree;
 
@@ -41,9 +41,9 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     this(Math.sqrt(2), log);
   }
 
-  public MctsAgent(double exploitation_constant, Logger log) {
+  public MctsAgent(double exploitationConstant, Logger log) {
     super(log);
-    this.exploitation_constant = exploitation_constant;
+    this.exploitationConstant = exploitationConstant;
     mcTree = new DoubleLinkedTree<>();
   }
 
@@ -54,7 +54,7 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     mcTree.setNode(new McGameNode<>());
 
     gameMcTreeUCTComparator = Comparator
-        .comparingDouble(t -> upperConfidenceBound(t, exploitation_constant));
+        .comparingDouble(t -> upperConfidenceBound(t, exploitationConstant));
     gameMcTreePlayComparator = Comparator.comparingInt(t -> t.getNode().getPlays());
     gameMcTreeWinComparator = Comparator.comparingInt(t -> t.getNode().getWins());
     gameMcTreeSelectionComparator = (o1, o2) -> {
