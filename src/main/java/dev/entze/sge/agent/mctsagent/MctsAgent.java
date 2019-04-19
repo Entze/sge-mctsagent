@@ -80,7 +80,7 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
   @Override
   public A computeNextAction(G game, long computationTime, TimeUnit timeUnit) {
 
-    super.computeNextAction(game, computationTime, timeUnit);
+    super.setTimers(computationTime, timeUnit);
 
     Util.findRoot(mcTree, game);
 
