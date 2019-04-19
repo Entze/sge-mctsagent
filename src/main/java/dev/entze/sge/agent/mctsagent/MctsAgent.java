@@ -171,15 +171,15 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
 
     boolean win = false;
     if (game.isGameOver()) {
-      tree.getNode().incPlays();
       double[] evaluation = game.getGameUtilityValue();
 
+      win = true;
       boolean tie = true;
       for (int i = 0; i < evaluation.length; i++) {
         for (int j = i; j < evaluation.length && tie; j++) {
           tie = evaluation[i] == evaluation[j];
         }
-        win = evaluation[playerNumber] >= evaluation[i] || win;
+        win = win && evaluation[playerNumber] >= evaluation[i];
       }
 
       win = win || (tie && random.nextBoolean());
