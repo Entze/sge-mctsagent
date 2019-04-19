@@ -34,7 +34,7 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
   private Tree<McGameNode<A>> mcTree;
 
   public MctsAgent() {
-    this(Math.sqrt(2), null);
+    this(null);
   }
 
   public MctsAgent(Logger log) {
