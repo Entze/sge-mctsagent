@@ -22,8 +22,14 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
   private Comparator<Tree<McGameNode<A>>> gameMcTreeUCTComparator;
   private Comparator<Tree<McGameNode<A>>> gameMcTreeSelectionComparator;
   private Comparator<Tree<McGameNode<A>>> gameMcTreePlayComparator;
+  private Comparator<McGameNode<A>> gameMcNodePlayComparator;
   private Comparator<Tree<McGameNode<A>>> gameMcTreeWinComparator;
+  private Comparator<McGameNode<A>> gameMcNodeWinComparator;
   private Comparator<Tree<McGameNode<A>>> gameMcTreeMoveComparator;
+  private Comparator<McGameNode<A>> gameMcNodeMoveComparator;
+  private Comparator<McGameNode<A>> gameMcNodeGameComparator;
+  private Comparator<Tree<McGameNode<A>>> gameMcTreeGameComparator;
+
   private Tree<McGameNode<A>> mcTree;
 
   public MctsAgent() {
@@ -48,26 +54,26 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
 
     gameMcTreeUCTComparator = Comparator
         .comparingDouble(t -> upperConfidenceBound(t, exploitationConstant));
-    gameMcTreePlayComparator = Comparator.comparingInt(t -> t.getNode().getPlays());
-    gameMcTreeWinComparator = Comparator.comparingInt(t -> t.getNode().getWins());
-    gameMcTreeSelectionComparator = (o1, o2) -> {
-      int compare = gameMcTreeUCTComparator.compare(o1, o2);
-      if (compare == 0) {
-        return gameComparator.compare(o1.getNode().getGame(), o2.getNode().getGame());
-      }
-      return compare;
-    };
 
-    gameMcTreeMoveComparator = (o1, o2) -> {
-      int compare = gameUtilityComparator.compare(o1.getNode().getGame(), o2.getNode().getGame());
-      if (compare == 0) {
-        compare = gameMcTreePlayComparator.thenComparing(gameMcTreeWinComparator).compare(o1, o2);
-        if (compare == 0) {
-          return gameHeuristicComparator.compare(o1.getNode().getGame(), o2.getNode().getGame());
-        }
-      }
-      return compare;
-    };
+    gameMcNodePlayComparator = Comparator.comparingInt(McGameNode::getPlays);
+    gameMcTreePlayComparator = (o1, o2) -> gameMcNodePlayComparator
+        .compare(o1.getNode(), o2.getNode());
+
+    gameMcNodeWinComparator = Comparator.comparingInt(McGameNode::getWins);
+    gameMcTreeWinComparator = (o1, o2) -> gameMcNodeWinComparator
+        .compare(o1.getNode(), o2.getNode());
+
+    gameMcNodeGameComparator = (o1, o2) -> gameComparator.compare(o1.getGame(), o2.getGame());
+    gameMcTreeGameComparator = (o1, o2) -> gameMcNodeGameComparator
+        .compare(o1.getNode(), o2.getNode());
+
+    gameMcTreeSelectionComparator = gameMcTreeUCTComparator.thenComparing(gameMcTreeGameComparator);
+
+    gameMcNodeMoveComparator = gameMcNodePlayComparator.thenComparing(gameMcNodeWinComparator)
+        .thenComparing(gameMcNodeGameComparator);
+    gameMcTreeMoveComparator = (o1, o2) -> gameMcNodeMoveComparator
+        .compare(o1.getNode(), o2.getNode());
+
   }
 
   @Override
@@ -75,13 +81,19 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
 
     super.setTimers(computationTime, timeUnit);
 
+    log.tra("Searching for root of tree");
     Util.findRoot(mcTree, game);
+    log.trace_(", done.");
 
-    if (sortPromisingCandidates(mcTree, ((Comparator<McGameNode<A>>) (o1, o2) -> gameComparator
-        .compare(o1.getGame(), o2.getGame())).reversed())) {
-      return mcTree.getChild(0).getNode().getGame().getPreviousAction();
+    log.tra("Check if best move will eventually end game: ");
+    if (sortPromisingCandidates(mcTree, gameMcNodeMoveComparator.reversed())) {
+      log.trace_("Yes");
+      return Collections.max(mcTree.getChildren(), gameMcTreeMoveComparator).getNode().getGame()
+          .getPreviousAction();
     }
+    log.trace_("No");
 
+    log.deb("Starting MCTS with currently " + mcTree.getNode().getPlays() + " simulations");
     while (!shouldStopComputation()) {
 
       Tree<McGameNode<A>> tree = mcSelection(mcTree);
@@ -93,11 +105,19 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
       mcBackPropagation(tree, won);
 
     }
+    log.debug_(
+        ", done in " + Util.convertUnitToReadableString(System.nanoTime() - START_TIME,
+            TimeUnit.NANOSECONDS, timeUnit) + ".");
 
     if (mcTree.isLeaf()) {
+      log.debug("Could not find a move, choosing the next best greedy option.");
       return Collections.max(game.getPossibleActions(),
           (o1, o2) -> gameComparator.compare(game.doAction(o1), game.doAction(o2)));
     }
+
+    log.debug(String.format("Confidence: %.1f%% with %d simulations",
+        100D * ((double) mcTree.getNode().getWins()) / ((double) mcTree.getNode().getPlays()),
+        mcTree.getNode().getPlays()));
 
     return Collections.max(mcTree.getChildren(), gameMcTreeMoveComparator).getNode().getGame()
         .getPreviousAction();
@@ -106,7 +126,11 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
   private boolean sortPromisingCandidates(Tree<McGameNode<A>> tree,
       Comparator<McGameNode<A>> comparator) {
     while (!tree.isLeaf()) {
-      tree.sort(comparator);
+      if (tree.getNode().getGame().getCurrentPlayer() == playerNumber) {
+        tree.sort(comparator);
+      } else {
+        tree.sort(comparator.reversed());
+      }
       tree = tree.getChild(0);
     }
     return tree.getNode().getGame().isGameOver();
