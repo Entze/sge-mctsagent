@@ -93,8 +93,19 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     }
     log.trace_("No");
 
-    log.deb("Starting MCTS with currently " + mcTree.getNode().getPlays() + " simulations");
+    int looped = 0;
+    log.deb(String
+        .format("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
+            100D * ((double) mcTree.getNode().getWins()) / ((double) mcTree.getNode().getPlays())));
     while (!shouldStopComputation()) {
+
+      if (looped++ % 97 == 0) {
+        log.deb_("\r");
+        log.deb(String
+            .format("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
+                100D * ((double) mcTree.getNode().getWins()) / ((double) mcTree.getNode()
+                    .getPlays())));
+      }
 
       Tree<McGameNode<A>> tree = mcSelection(mcTree);
       mcExpansion(tree);
@@ -105,19 +116,19 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
       mcBackPropagation(tree, won);
 
     }
+    log.deb_("\r");
+    log.deb(String
+        .format("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
+            100D * ((double) mcTree.getNode().getWins()) / ((double) mcTree.getNode().getPlays())));
     log.debug_(
         ", done in " + Util.convertUnitToReadableString(System.nanoTime() - START_TIME,
-            TimeUnit.NANOSECONDS, timeUnit) + ".");
+            TimeUnit.NANOSECONDS, timeUnit));
 
     if (mcTree.isLeaf()) {
-      log.debug("Could not find a move, choosing the next best greedy option.");
+      log.debug_(". Could not find a move, choosing the next best greedy option.");
       return Collections.max(game.getPossibleActions(),
           (o1, o2) -> gameComparator.compare(game.doAction(o1), game.doAction(o2)));
     }
-
-    log.debug(String.format("Confidence: %.1f%% with %d simulations",
-        100D * ((double) mcTree.getNode().getWins()) / ((double) mcTree.getNode().getPlays()),
-        mcTree.getNode().getPlays()));
 
     return Collections.max(mcTree.getChildren(), gameMcTreeMoveComparator).getNode().getGame()
         .getPreviousAction();
