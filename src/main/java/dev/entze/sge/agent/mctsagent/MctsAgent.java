@@ -18,19 +18,12 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     GameAgent<G, A> {
 
 
-  private Comparator<Tree<McGameNode<A>>> gameMcTreeUCTComparator;
-
-  private Comparator<Tree<McGameNode<A>>> gameMcTreeSelectionComparator;
-
-  private Comparator<Tree<McGameNode<A>>> gameMcTreePlayComparator;
-
-  private Comparator<Tree<McGameNode<A>>> gameMcTreeWinComparator;
-
-  private Comparator<Tree<McGameNode<A>>> gameMcTreeMoveComparator;
-
-
   private final double exploitationConstant;
-
+  private Comparator<Tree<McGameNode<A>>> gameMcTreeUCTComparator;
+  private Comparator<Tree<McGameNode<A>>> gameMcTreeSelectionComparator;
+  private Comparator<Tree<McGameNode<A>>> gameMcTreePlayComparator;
+  private Comparator<Tree<McGameNode<A>>> gameMcTreeWinComparator;
+  private Comparator<Tree<McGameNode<A>>> gameMcTreeMoveComparator;
   private Tree<McGameNode<A>> mcTree;
 
   public MctsAgent() {

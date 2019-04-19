@@ -2,9 +2,7 @@ package dev.entze.sge.agent.mctsagent;
 
 import dev.entze.sge.game.Game;
 import dev.entze.sge.util.node.GameNode;
-import java.util.Comparator;
 import java.util.Objects;
-import org.jetbrains.annotations.NotNull;
 
 public class McGameNode<A> implements GameNode<A> {
 
