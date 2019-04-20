@@ -47,8 +47,8 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
   }
 
   @Override
-  public void setUp(int numberOfPlayers, int playerNumber) {
-    super.setUp(numberOfPlayers, playerNumber);
+  public void setUp(int numberOfPlayers, int playerId) {
+    super.setUp(numberOfPlayers, playerId);
     mcTree.clear();
     mcTree.setNode(new McGameNode<>());
 
@@ -137,7 +137,7 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
   private boolean sortPromisingCandidates(Tree<McGameNode<A>> tree,
       Comparator<McGameNode<A>> comparator) {
     while (!tree.isLeaf()) {
-      if (tree.getNode().getGame().getCurrentPlayer() == playerNumber) {
+      if (tree.getNode().getGame().getCurrentPlayer() == playerId) {
         tree.sort(comparator);
       } else {
         tree.sort(comparator.reversed());
@@ -190,7 +190,7 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
         for (int j = i; j < evaluation.length && tie; j++) {
           tie = evaluation[i] == evaluation[j];
         }
-        win = win && evaluation[playerNumber] >= evaluation[i];
+        win = win && evaluation[playerId] >= evaluation[i];
       }
 
       win = win || (tie && random.nextBoolean());
