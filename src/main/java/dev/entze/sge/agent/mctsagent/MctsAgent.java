@@ -112,27 +112,9 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
                     .getPlays())));
       }
       Tree<McGameNode<A>> tree = mcTree;
-      do {
-        tree = mcSelection(tree);
-        mcExpansion(tree);
-        if (!tree.isLeaf()) {
-          if (tree.getNode().getGame().getCurrentPlayer() < 0) {
-            A action = tree.getNode().getGame().determineNextAction();
-            boolean foundChild = false;
-            for (Tree<McGameNode<A>> child : tree.getChildren()) {
-              if (child.getNode().getGame().getPreviousAction().equals(action)) {
-                tree = child;
-                foundChild = true;
-                break;
-              }
-            }
-            if (foundChild) {
-              break;
-            }
-          }
-          tree = Collections.max(tree.getChildren(), gameMcTreeSelectionComparator);
-        }
-      } while (tree.getNode().getGame().getCurrentPlayer() < 0);
+
+      tree = mcSelection(tree);
+      mcExpansion(tree);
       boolean won = mcSimulation(tree);
       mcBackPropagation(tree, won);
 
@@ -177,19 +159,15 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
       List<Tree<McGameNode<A>>> children = new ArrayList<>(tree.getChildren());
       if (tree.getNode().getGame().getCurrentPlayer() < 0) {
         A action = tree.getNode().getGame().determineNextAction();
-        boolean foundChild = false;
         for (Tree<McGameNode<A>> child : children) {
           if (child.getNode().getGame().getPreviousAction().equals(action)) {
             tree = child;
-            foundChild = true;
             break;
           }
         }
-        if (foundChild) {
-          continue;
-        }
+      } else {
+        tree = Collections.max(children, gameMcTreeSelectionComparator);
       }
-      tree = Collections.max(children, gameMcTreeSelectionComparator);
     }
     return tree;
   }
