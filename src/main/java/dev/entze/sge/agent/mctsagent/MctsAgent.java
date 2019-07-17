@@ -104,7 +104,7 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
 
     while (!shouldStopComputation()) {
 
-      if (looped++ % 101 == 0) {
+      if (looped++ % 97 == 0) {
         log.deb_("\r");
         log.deb(String
             .format("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
