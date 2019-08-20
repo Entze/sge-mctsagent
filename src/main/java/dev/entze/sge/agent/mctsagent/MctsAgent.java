@@ -98,9 +98,10 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     log.trace_("No");
 
     int looped = 0;
+
     log.deb(String
         .format("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
-            100D * ((double) mcTree.getNode().getWins()) / ((double) mcTree.getNode().getPlays())));
+            Util.percentage(mcTree.getNode().getWins(), mcTree.getNode().getPlays())));
 
     while (!shouldStopComputation()) {
 
@@ -108,8 +109,7 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
         log.deb_("\r");
         log.deb(String
             .format("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
-                100D * ((double) mcTree.getNode().getWins()) / ((double) mcTree.getNode()
-                    .getPlays())));
+                Util.percentage(mcTree.getNode().getWins(), mcTree.getNode().getPlays())));
       }
       Tree<McGameNode<A>> tree = mcTree;
 
@@ -122,7 +122,7 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     log.deb_("\r");
     log.deb(String
         .format("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
-            100D * ((double) mcTree.getNode().getWins()) / ((double) mcTree.getNode().getPlays())));
+            Util.percentage(mcTree.getNode().getWins(), mcTree.getNode().getPlays())));
     log.debug_(
         ", done in " + Util.convertUnitToReadableString(System.nanoTime() - START_TIME,
             TimeUnit.NANOSECONDS, timeUnit));
@@ -155,7 +155,8 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
 
 
   private Tree<McGameNode<A>> mcSelection(Tree<McGameNode<A>> tree) {
-    while (!tree.isLeaf()) {
+    int depth = 0;
+    while (!tree.isLeaf() && (depth++ % 31 != 0 || !shouldStopComputation())) {
       List<Tree<McGameNode<A>>> children = new ArrayList<>(tree.getChildren());
       if (tree.getNode().getGame().getCurrentPlayer() < 0) {
         A action = tree.getNode().getGame().determineNextAction();
@@ -186,7 +187,7 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     Game<A, ?> game = tree.getNode().getGame();
 
     int depth = 0;
-    while (!game.isGameOver() && (depth % 31 != 0 || !shouldStopComputation())) {
+    while (!game.isGameOver() && (depth++ % 31 != 0 || !shouldStopComputation())) {
 
       if (game.getCurrentPlayer() < 0) {
         game = game.doAction();
@@ -194,7 +195,6 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
         game = game.doAction(Util.selectRandom(game.getPossibleActions(), random));
       }
 
-      depth++;
     }
 
     boolean win = false;
@@ -218,13 +218,12 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
 
   private void mcBackPropagation(Tree<McGameNode<A>> tree, boolean win) {
     int depth = 0;
-    while (!tree.isRoot() && (depth % 31 != 0 || !shouldStopComputation())) {
+    while (!tree.isRoot() && (depth++ % 31 != 0 || !shouldStopComputation())) {
       tree = tree.getParent();
       tree.getNode().incPlays();
       if (win) {
         tree.getNode().incWins();
       }
-      depth++;
     }
   }
 
