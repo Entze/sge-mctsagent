@@ -18,6 +18,10 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     GameAgent<G, A> {
 
 
+  private static int INSTANCE_NR_COUNTER = 1;
+
+  private final int instanceNr;
+
   private final double exploitationConstant;
   private Comparator<Tree<McGameNode<A>>> gameMcTreeUCTComparator;
   private Comparator<Tree<McGameNode<A>>> gameMcTreeSelectionComparator;
@@ -44,6 +48,7 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     super(log);
     this.exploitationConstant = exploitationConstant;
     mcTree = new DoubleLinkedTree<>();
+    instanceNr = INSTANCE_NR_COUNTER++;
   }
 
   @Override
@@ -238,5 +243,8 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     return (w / n) + c * Math.sqrt(Math.log(N) / n);
   }
 
-
+  @Override
+  public String toString() {
+    return String.format("%s%d", "MctsAgent#", instanceNr);
+  }
 }
