@@ -122,8 +122,8 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
       mcExpansion(tree);
       boolean won = mcSimulation(tree);
       mcBackPropagation(tree, won);
-
     }
+
     log.deb_("\r");
     log.deb(String
         .format("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
@@ -202,22 +202,14 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
 
     }
 
-    boolean win = false;
-    if (game.isGameOver()) {
-      double[] evaluation = game.getGameUtilityValue();
+    double[] evaluation = game.getGameUtilityValue();
+    double score = Util.scoreOutOfUtility(evaluation, playerId);
 
-      win = true;
-      boolean tie = true;
-      for (int i = 0; i < evaluation.length; i++) {
-        for (int j = i; j < evaluation.length && tie; j++) {
-          tie = evaluation[i] == evaluation[j];
-        }
-        win = win && evaluation[playerId] >= evaluation[i];
-      }
+    boolean win = score == 1D;
+    boolean tie = score > 0;
 
-      win = win || (tie && random.nextBoolean());
+    win = win || (tie && random.nextBoolean());
 
-    }
     return win;
   }
 
@@ -245,6 +237,9 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
 
   @Override
   public String toString() {
-    return String.format("%s%d", "MctsAgent#", instanceNr);
+    if (instanceNr > 1 || MctsAgent.INSTANCE_NR_COUNTER > 2) {
+      return String.format("%s%d", "MctsAgent#", instanceNr);
+    }
+    return "MctsAgent";
   }
 }
