@@ -18,6 +18,7 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     GameAgent<G, A> {
 
 
+  private static final int MAX_PRINT_THRESHOLD = 97;
   private static int INSTANCE_NR_COUNTER = 1;
 
   private final int instanceNr;
@@ -108,9 +109,11 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
         .format("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
             Util.percentage(mcTree.getNode().getWins(), mcTree.getNode().getPlays())));
 
+    int printThreshold = 1;
+
     while (!shouldStopComputation()) {
 
-      if (looped++ % 97 == 0) {
+      if (looped++ % printThreshold == 0) {
         log.deb_("\r");
         log.deb(String
             .format("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
@@ -122,6 +125,11 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
       mcExpansion(tree);
       boolean won = mcSimulation(tree);
       mcBackPropagation(tree, won);
+
+      if (printThreshold < MAX_PRINT_THRESHOLD) {
+        printThreshold = Math.max(1, Math.min(MAX_PRINT_THRESHOLD,
+            Math.round(mcTree.getNode().getPlays() * 11.1111111111F)));
+      }
     }
 
     log.deb_("\r");
