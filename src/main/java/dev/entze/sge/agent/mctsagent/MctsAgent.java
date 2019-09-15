@@ -91,6 +91,7 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     super.setTimers(computationTime, timeUnit);
     stats.resetStartTime();
     stats.resetEndTime(super.TIMEOUT, TimeUnit.NANOSECONDS);
+    stats.resetSimulationsDone();
 
     log.tra("Searching for root of tree");
     boolean foundRoot = Util.findRoot(mcTree, game);
@@ -135,15 +136,21 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
         printThreshold = Math.max(1, Math.min(MAX_PRINT_THRESHOLD,
             Math.round(mcTree.getNode().getPlays() * 11.1111111111F)));
       }
+
     }
+
+    stats.measureNanosPerSimulation();
 
     log.deb_("\r");
     log.deb(String
         .format("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
             Util.percentage(mcTree.getNode().getWins(), mcTree.getNode().getPlays())));
-    log.debug_(
-        ", done in " + Util.convertUnitToReadableString(System.nanoTime() - START_TIME,
-            TimeUnit.NANOSECONDS, timeUnit));
+    log.debugf_(
+        ", done in %d with %s/simulation",
+        Util.convertUnitToReadableString(System.nanoTime() - START_TIME,
+            TimeUnit.NANOSECONDS, timeUnit),
+        Util.convertUnitToReadableString(stats.getAverageNanosPerSimulation(), TimeUnit.NANOSECONDS,
+            TimeUnit.NANOSECONDS));
 
     if (mcTree.isLeaf()) {
       log.debug_(". Could not find a move, choosing the next best greedy option.");
@@ -222,6 +229,8 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     boolean tie = score > 0;
 
     win = win || (tie && random.nextBoolean());
+
+    stats.incrementSimulationsDone();
 
     return win;
   }

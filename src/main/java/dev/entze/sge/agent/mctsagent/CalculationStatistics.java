@@ -44,6 +44,10 @@ public class CalculationStatistics {
     this.resetStartTime(System.nanoTime(), TimeUnit.NANOSECONDS);
   }
 
+  public void resetSimulationsDone() {
+    this.simulationsDone = 0L;
+  }
+
   public void resetAverageNanosPerSimulation() {
     measuredSimulationsDone = 0L;
   }
@@ -122,4 +126,7 @@ public class CalculationStatistics {
     measuredSimulationsDone += simulationsDone;
   }
 
+  public long getAverageNanosPerSimulation() {
+    return averageNanosPerSimulation;
+  }
 }
