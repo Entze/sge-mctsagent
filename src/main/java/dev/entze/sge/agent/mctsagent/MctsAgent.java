@@ -37,6 +37,8 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
 
   private Tree<McGameNode<A>> mcTree;
 
+  private CalculationStatistics stats;
+
   public MctsAgent() {
     this(null);
   }
@@ -50,6 +52,7 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     this.exploitationConstant = exploitationConstant;
     mcTree = new DoubleLinkedTree<>();
     instanceNr = INSTANCE_NR_COUNTER++;
+    stats = new CalculationStatistics();
   }
 
   @Override
@@ -79,13 +82,15 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
         .thenComparing(gameMcNodeGameComparator);
     gameMcTreeMoveComparator = (o1, o2) -> gameMcNodeMoveComparator
         .compare(o1.getNode(), o2.getNode());
-
+    stats.resetAverageNanosPerSimulation();
   }
 
   @Override
   public A computeNextAction(G game, long computationTime, TimeUnit timeUnit) {
 
     super.setTimers(computationTime, timeUnit);
+    stats.resetStartTime();
+    stats.resetEndTime(super.TIMEOUT, TimeUnit.NANOSECONDS);
 
     log.tra("Searching for root of tree");
     boolean foundRoot = Util.findRoot(mcTree, game);
