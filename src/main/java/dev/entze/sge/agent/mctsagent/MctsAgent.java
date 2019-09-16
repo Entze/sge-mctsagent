@@ -37,8 +37,6 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
 
   private Tree<McGameNode<A>> mcTree;
 
-  private CalculationStatistics stats;
-
   public MctsAgent() {
     this(null);
   }
@@ -52,7 +50,6 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     this.exploitationConstant = exploitationConstant;
     mcTree = new DoubleLinkedTree<>();
     instanceNr = INSTANCE_NR_COUNTER++;
-    stats = new CalculationStatistics();
   }
 
   @Override
@@ -82,16 +79,12 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
         .thenComparing(gameMcNodeGameComparator);
     gameMcTreeMoveComparator = (o1, o2) -> gameMcNodeMoveComparator
         .compare(o1.getNode(), o2.getNode());
-    stats.resetAverageNanosPerSimulation();
   }
 
   @Override
   public A computeNextAction(G game, long computationTime, TimeUnit timeUnit) {
 
     super.setTimers(computationTime, timeUnit);
-    stats.resetStartTime();
-    stats.resetEndTime(super.TIMEOUT, TimeUnit.NANOSECONDS);
-    stats.resetSimulationsDone();
 
     log.tra("Searching for root of tree");
     boolean foundRoot = Util.findRoot(mcTree, game);
@@ -111,9 +104,8 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
 
     int looped = 0;
 
-    log.deb(String
-        .format("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
-            Util.percentage(mcTree.getNode().getWins(), mcTree.getNode().getPlays())));
+    log.debf("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
+        Util.percentage(mcTree.getNode().getWins(), mcTree.getNode().getPlays()));
 
     int printThreshold = 1;
 
@@ -121,15 +113,14 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
 
       if (looped++ % printThreshold == 0) {
         log.deb_("\r");
-        log.deb(String
-            .format("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
-                Util.percentage(mcTree.getNode().getWins(), mcTree.getNode().getPlays())));
+        log.debf("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
+            Util.percentage(mcTree.getNode().getWins(), mcTree.getNode().getPlays()));
       }
       Tree<McGameNode<A>> tree = mcTree;
 
       tree = mcSelection(tree);
       mcExpansion(tree);
-      boolean won = mcSimulation(tree);
+      boolean won = mcSimulation(tree, 128, 2);
       mcBackPropagation(tree, won);
 
       if (printThreshold < MAX_PRINT_THRESHOLD) {
@@ -139,17 +130,16 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
 
     }
 
-    stats.measureNanosPerSimulation();
-
+    long elapsedTime = Math.max(1, System.nanoTime() - START_TIME);
     log.deb_("\r");
-    log.deb(String
-        .format("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
-            Util.percentage(mcTree.getNode().getWins(), mcTree.getNode().getPlays())));
+    log.debf("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
+        Util.percentage(mcTree.getNode().getWins(), mcTree.getNode().getPlays()));
     log.debugf_(
-        ", done in %d with %s/simulation",
-        Util.convertUnitToReadableString(System.nanoTime() - START_TIME,
+        ", done in %s with %s/simulation.",
+        Util.convertUnitToReadableString(elapsedTime,
             TimeUnit.NANOSECONDS, timeUnit),
-        Util.convertUnitToReadableString(stats.getAverageNanosPerSimulation(), TimeUnit.NANOSECONDS,
+        Util.convertUnitToReadableString(elapsedTime / Math.max(1, mcTree.getNode().getPlays()),
+            TimeUnit.NANOSECONDS,
             TimeUnit.NANOSECONDS));
 
     if (mcTree.isLeaf()) {
@@ -208,6 +198,20 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     }
   }
 
+  private boolean mcSimulation(Tree<McGameNode<A>> tree, int simulationsAtLeast, int proportion) {
+    int simulationsDone = tree.getNode().getPlays();
+    if (simulationsDone < simulationsAtLeast && System.nanoTime() - START_TIME >= (TIMEOUT
+        / proportion)) {
+      int simulationsLeft = simulationsAtLeast - simulationsDone;
+      long nanosLeft = TIMEOUT - (System.nanoTime() - START_TIME);
+      return mcSimulation(tree, nanosLeft / simulationsLeft);
+    } else if (simulationsDone == 0) {
+      return mcSimulation(tree, TIMEOUT / 2 - (System.nanoTime() - START_TIME));
+    }
+
+    return mcSimulation(tree);
+  }
+
   private boolean mcSimulation(Tree<McGameNode<A>> tree) {
     Game<A, ?> game = tree.getNode().getGame();
 
@@ -222,18 +226,44 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
 
     }
 
+    return mcHasWon(game);
+  }
+
+  private boolean mcSimulation(Tree<McGameNode<A>> tree, long timeout) {
+    long startTime = System.nanoTime();
+    Game<A, ?> game = tree.getNode().getGame();
+
+    int depth = 0;
+    while (!game.isGameOver() && (System.nanoTime() - startTime <= timeout) && (depth++ % 31 != 0
+        || !shouldStopComputation())) {
+
+      if (game.getCurrentPlayer() < 0) {
+        game = game.doAction();
+      } else {
+        game = game.doAction(Util.selectRandom(game.getPossibleActions(), random));
+      }
+
+    }
+
+    return mcHasWon(game);
+  }
+
+  private boolean mcHasWon(Game<A, ?> game) {
     double[] evaluation = game.getGameUtilityValue();
     double score = Util.scoreOutOfUtility(evaluation, playerId);
+    if (!game.isGameOver() && score > 0) {
+      evaluation = game.getGameHeuristicValue();
+      score = Util.scoreOutOfUtility(evaluation, playerId);
+    }
 
     boolean win = score == 1D;
     boolean tie = score > 0;
 
     win = win || (tie && random.nextBoolean());
 
-    stats.incrementSimulationsDone();
-
     return win;
   }
+
 
   private void mcBackPropagation(Tree<McGameNode<A>> tree, boolean win) {
     int depth = 0;
