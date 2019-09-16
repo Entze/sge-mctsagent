@@ -1,7 +1,7 @@
-package dev.entze.sge.agent.mctsagent;
+package at.ac.tuwien.ifs.sge.agent.mctsagent;
 
-import dev.entze.sge.game.Game;
-import dev.entze.sge.util.node.GameNode;
+import at.ac.tuwien.ifs.sge.game.Game;
+import at.ac.tuwien.ifs.sge.util.node.GameNode;
 import java.util.Objects;
 
 public class McGameNode<A> implements GameNode<A> {

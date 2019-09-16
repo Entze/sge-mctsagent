@@ -1,12 +1,12 @@
-package dev.entze.sge.agent.mctsagent;
+package at.ac.tuwien.ifs.sge.agent.mctsagent;
 
-import dev.entze.sge.agent.AbstractGameAgent;
-import dev.entze.sge.agent.GameAgent;
-import dev.entze.sge.engine.Logger;
-import dev.entze.sge.game.Game;
-import dev.entze.sge.util.Util;
-import dev.entze.sge.util.tree.DoubleLinkedTree;
-import dev.entze.sge.util.tree.Tree;
+import at.ac.tuwien.ifs.sge.agent.AbstractGameAgent;
+import at.ac.tuwien.ifs.sge.agent.GameAgent;
+import at.ac.tuwien.ifs.sge.engine.Logger;
+import at.ac.tuwien.ifs.sge.game.Game;
+import at.ac.tuwien.ifs.sge.util.Util;
+import at.ac.tuwien.ifs.sge.util.tree.DoubleLinkedTree;
+import at.ac.tuwien.ifs.sge.util.tree.Tree;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
