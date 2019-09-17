@@ -86,25 +86,25 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
 
     super.setTimers(computationTime, timeUnit);
 
-    log.tra("Searching for root of tree");
+    log.tra_("Searching for root of tree");
     boolean foundRoot = Util.findRoot(mcTree, game);
     if (foundRoot) {
-      log.trace_(", done.");
+      log._trace(", done.");
     } else {
-      log.trace_(", failed.");
+      log._trace(", failed.");
     }
 
-    log.tra("Check if best move will eventually end game: ");
+    log.tra_("Check if best move will eventually end game: ");
     if (sortPromisingCandidates(mcTree, gameMcNodeMoveComparator.reversed())) {
-      log.trace_("Yes");
+      log._trace("Yes");
       return Collections.max(mcTree.getChildren(), gameMcTreeMoveComparator).getNode().getGame()
           .getPreviousAction();
     }
-    log.trace_("No");
+    log._trace("No");
 
     int looped = 0;
 
-    log.debf("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
+    log.debf_("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
         Util.percentage(mcTree.getNode().getWins(), mcTree.getNode().getPlays()));
 
     int printThreshold = 1;
@@ -112,8 +112,8 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     while (!shouldStopComputation()) {
 
       if (looped++ % printThreshold == 0) {
-        log.deb_("\r");
-        log.debf("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
+        log._deb_("\r");
+        log.debf_("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
             Util.percentage(mcTree.getNode().getWins(), mcTree.getNode().getPlays()));
       }
       Tree<McGameNode<A>> tree = mcTree;
@@ -131,10 +131,10 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
     }
 
     long elapsedTime = Math.max(1, System.nanoTime() - START_TIME);
-    log.deb_("\r");
-    log.debf("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
+    log._deb_("\r");
+    log.debf_("MCTS with %d simulations at confidence %.1f%%", mcTree.getNode().getPlays(),
         Util.percentage(mcTree.getNode().getWins(), mcTree.getNode().getPlays()));
-    log.debugf_(
+    log._debugf(
         ", done in %s with %s/simulation.",
         Util.convertUnitToReadableString(elapsedTime,
             TimeUnit.NANOSECONDS, timeUnit),
@@ -143,7 +143,7 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
             TimeUnit.NANOSECONDS));
 
     if (mcTree.isLeaf()) {
-      log.debug_(". Could not find a move, choosing the next best greedy option.");
+      log._debug(". Could not find a move, choosing the next best greedy option.");
       return Collections.max(game.getPossibleActions(),
           (o1, o2) -> gameComparator.compare(game.doAction(o1), game.doAction(o2)));
     }
