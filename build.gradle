@@ -20,7 +20,7 @@ dependencies {
 jar {
     manifest {
         attributes 'Sge-Type': 'agent'
-        attributes 'Agent-Class': 'dev.entze.sge.agent.mctsagent.MctsAgent'
+        attributes 'Agent-Class': 'at.ac.tuwien.ifs.sge.agent.mctsagent.MctsAgent'
         attributes 'Agent-Name': 'MctsAgent'
     }
 }
