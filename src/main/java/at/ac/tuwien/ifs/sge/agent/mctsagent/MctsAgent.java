@@ -200,13 +200,11 @@ public class MctsAgent<G extends Game<A, ?>, A> extends AbstractGameAgent<G, A> 
 
   private boolean mcSimulation(Tree<McGameNode<A>> tree, int simulationsAtLeast, int proportion) {
     int simulationsDone = tree.getNode().getPlays();
-    if (simulationsDone < simulationsAtLeast && System.nanoTime() - START_TIME >= (TIMEOUT
-        / proportion)) {
+    if (simulationsDone < simulationsAtLeast && shouldStopComputation(proportion)) {
       int simulationsLeft = simulationsAtLeast - simulationsDone;
-      long nanosLeft = TIMEOUT - (System.nanoTime() - START_TIME);
-      return mcSimulation(tree, nanosLeft / simulationsLeft);
+      return mcSimulation(tree, nanosLeft() / simulationsLeft);
     } else if (simulationsDone == 0) {
-      return mcSimulation(tree, TIMEOUT / 2 - (System.nanoTime() - START_TIME));
+      return mcSimulation(tree, TIMEOUT / 2L - nanosElapsed());
     }
 
     return mcSimulation(tree);
