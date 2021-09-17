@@ -9,12 +9,17 @@ version '1.0.1'
 sourceCompatibility = 1.11
 
 repositories {
-    jcenter()
+    maven {
+        url = uri("https://maven.pkg.github.com/Entze/Strategy-Game-Engine")
+        credentials {
+            username = project.findProperty("gpr.user") ?: findProperty("github.actor") ?: System.getenv("GITHUB_ACTOR")
+            password = project.findProperty("gpr.key") ?: findProperty("github.token") ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
 }
 
 dependencies {
-    compile group: 'at.ac.tuwien.ifs.sge', name: 'sge', version: '1.0.1'
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    implementation 'at.ac.tuwien.ifs.sge:sge:1.0.3-SNAPSHOT'
 }
 
 jar {
@@ -23,20 +28,4 @@ jar {
         attributes 'Agent-Class': 'at.ac.tuwien.ifs.sge.agent.mctsagent.MctsAgent'
         attributes 'Agent-Name': 'MctsAgent'
     }
-}
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-    archiveClassifier.set('sources')
-    from sourceSets.main.allSource
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    archiveClassifier.set('javadoc')
-    from javadoc.destinationDir
-}
-
-
-artifacts {
-    archives sourcesJar
-    archives javadocJar
 }
