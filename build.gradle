@@ -9,17 +9,11 @@ version '1.0.3-SNAPSHOT'
 sourceCompatibility = 1.11
 
 repositories {
-    maven {
-        url = uri("https://maven.pkg.github.com/Entze/Strategy-Game-Engine")
-        credentials {
-            username = project.findProperty("gpr.user") ?: findProperty("github.actor") ?: System.getenv("GITHUB_ACTOR")
-            password = project.findProperty("gpr.key") ?: findProperty("github.token") ?: System.getenv("GITHUB_TOKEN")
-        }
-    }
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    implementation 'at.ac.tuwien.ifs.sge:sge:1.0.3-SNAPSHOT'
+    implementation 'com.gitlab.StrategyGameEngine:strategy-game-engine:1.0.4'
 }
 
 jar {
